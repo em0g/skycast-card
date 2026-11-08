@@ -1,0 +1,7 @@
+{
+  "name": "Skycast Card",
+  "filename": "skycast-card.js",
+  "content_in_root": false,
+  "render_readme": true,
+  "homeassistant": "2024.10.0"
+}

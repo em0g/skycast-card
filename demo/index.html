@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skycast Card – demo</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; color: #2b2233;
+    font-family: Roboto, "Segoe UI", system-ui, sans-serif;
+    background:
+      radial-gradient(1200px 700px at 10% 0%, #f5c6a5 0%, transparent 60%),
+      radial-gradient(900px 700px at 90% 30%, #f2b8c0 0%, transparent 60%),
+      radial-gradient(900px 800px at 30% 100%, #c9a9d6 0%, transparent 60%),
+      #efc0b4;
+  }
+  .controls {
+    position: sticky; top: 0; z-index: 10; display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: end;
+    padding: 10px 16px; background: rgba(255,255,255,.75); backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(0,0,0,.06); font-size: 12px;
+  }
+  .controls b { font-size: 12px; color: #6b5670; align-self: center; margin-right: 4px; }
+  .controls label { display: flex; flex-direction: column; gap: 4px; font-weight: 600; color: #5a4a5e; }
+  .controls select, .controls input[type=range] { font: inherit; }
+  .controls select { padding: 4px 6px; border-radius: 8px; border: 1px solid #d8c8d0; background: #fff; }
+  .controls .val { font-weight: 400; color: #806f84; }
+  .controls button { font: inherit; font-weight: 600; padding: 6px 12px; border-radius: 8px; border: 1px solid #d8c8d0; background: #fff; cursor: pointer; }
+  main { padding: 18px 16px 60px; display: grid; gap: 26px; max-width: 1400px; }
+  h2 { margin: 0 0 4px; font-size: 16px; color: #4a3550; }
+  h3 { margin: 0 0 8px; font-size: 13px; font-weight: 600; color: #6b5670; letter-spacing: .02em; }
+  p.hint { margin: 0 0 10px; font-size: 13px; color: #6b5670; }
+  .edit { display: grid; grid-template-columns: minmax(320px, 440px) minmax(0, 1fr); gap: 18px; align-items: start; }
+  .editor-panel { background: #f4f5f7; border-radius: 16px; padding: 14px; max-height: calc(100vh - 150px); overflow: auto; box-shadow: 0 4px 18px rgba(60,30,60,.12); }
+  .preview { position: sticky; top: 120px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; min-width: 0; }
+  .resizer { resize: both; overflow: hidden; width: 760px; max-width: 100%; min-width: 240px; min-height: 120px; padding: 2px; border: 1px dashed rgba(90,60,90,.35); border-radius: 18px; }
+  .resizer skycast-card { display: block; }
+  pre { margin: 0; font-size: 12px; background: rgba(255,255,255,.7); border-radius: 12px; padding: 10px 12px; max-height: 260px; overflow: auto; }
+  .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+  .w360 { max-width: 360px; }
+  @media (max-width: 900px) { .edit, .grid2 { grid-template-columns: 1fr; } .preview { position: static; } }
+</style>
+</head>
+<body>
+  <div class="controls">
+    <b>Låtsasväder:</b>
+    <label>Väder
+      <select id="cond">
+        <option value="sunny">Soligt</option>
+        <option value="clear-night">Klart (natt)</option>
+        <option value="partlycloudy" selected>Halvklart</option>
+        <option value="cloudy">Mulet</option>
+        <option value="fog">Dimma</option>
+        <option value="rainy">Regn</option>
+        <option value="pouring">Skyfall</option>
+        <option value="lightning">Åska</option>
+        <option value="lightning-rainy">Åska och regn</option>
+        <option value="snowy">Snö</option>
+        <option value="snowy-rainy">Snöblandat</option>
+        <option value="hail">Hagel</option>
+        <option value="windy">Blåsigt</option>
+        <option value="windy-variant">Blåsigt och molnigt</option>
+        <option value="exceptional">Extremt</option>
+      </select>
+    </label>
+    <label>Solhöjd <span class="val" id="elevV"></span><input id="elev" type="range" min="-20" max="40" step="1" value="9"></label>
+    <label>Solens riktning <span class="val" id="aziV"></span><input id="azi" type="range" min="90" max="270" step="1" value="160"></label>
+    <label>Temperatur <span class="val" id="tempV"></span><input id="temp" type="range" min="-15" max="30" step="0.1" value="6.8"></label>
+    <label>Vind <span class="val" id="windV"></span><input id="wind" type="range" min="0" max="20" step="0.5" value="4"></label>
+    <label>Regn i prognosen
+      <select id="scen">
+        <option value="auto">Enligt vädret</option>
+        <option value="later" selected>Regn om några timmar</option>
+        <option value="now">Regnar nu</option>
+        <option value="dry">Helt torrt</option>
+      </select>
+    </label>
+    <button id="reseed">Ny slumpad prognos</button>
+  </div>
+
+  <main>
+    <section>
+      <h2>Grafisk redigerare</h2>
+      <p class="hint">Så här ser redigeraren ut i Home Assistant (här med enklare reglage). Ändra till vänster – förhandsvisningen uppdateras direkt.
+        Dra i nedre högra hörnet av den streckade rutan för att prova olika storlekar.</p>
+      <div class="edit">
+        <div class="editor-panel" id="editorPanel"></div>
+        <div class="preview">
+          <div class="resizer" id="resizer"><skycast-card id="preview"></skycast-card></div>
+          <h3>YAML (samma som redigeraren sparar)</h3>
+          <pre id="yaml"></pre>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Exempel</h2>
+      <h3>Timmar och dagar bredvid varandra i ett kort, utan aktuellt väder</h3>
+      <skycast-card id="ex1"></skycast-card>
+    </section>
+    <section class="grid2">
+      <div>
+        <h3>Kompakt huvud, egna mätvärden, timmar och dagar ovanför varandra</h3>
+        <skycast-card id="ex2"></skycast-card>
+      </div>
+      <div>
+        <h3>Bara aktuellt väder (ingen prognos)</h3>
+        <skycast-card id="ex3"></skycast-card>
+        <h3 style="margin-top:16px">Flikar, stor temperatur, skala 0,85</h3>
+        <skycast-card id="ex4"></skycast-card>
+      </div>
+    </section>
+    <section class="w360">
+      <h3>Smal kolumn (mobil)</h3>
+      <skycast-card id="ex5"></skycast-card>
+    </section>
+  </main>
+
+<script src="mock-ha-form.js"></script>
+<script src="mock-hass.js"></script>
+<script src="../dist/skycast-card.js"></script>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const { ENTITY } = SkycastMock;
+  let seed = 7;
+  let forecasts = { hourly: [], daily: [] };
+
+  const readState = () => ({
+    cond: $('cond').value, elev: +$('elev').value, azi: +$('azi').value, temp: +$('temp').value,
+    wind: +$('wind').value, scen: $('scen').value,
+  });
+
+  const TYPE = 'custom:skycast-card';
+  const examples = {
+    ex1: { type: TYPE, entity: ENTITY, show_current: false, forecast_mode: 'side_by_side' },
+    ex2: { type: TYPE, entity: ENTITY, name: 'Hemma', header_style: 'compact', forecast_mode: 'stacked',
+      metrics: ['wind', 'humidity', 'indoor_temperature', 'sun'], indoor_temperature_entity: 'sensor.inne_temperatur', wind_unit: 'm/s' },
+    ex3: { type: TYPE, entity: ENTITY, name: 'Hemma', show_chart: false, show_nowcast: true,
+      metrics: ['humidity', 'wind', 'pressure', 'sun', 'uv_index', 'visibility'], metrics_columns: 3 },
+    ex4: { type: TYPE, entity: ENTITY, name: 'Hemma', scale: 0.85 },
+    ex5: { type: TYPE, entity: ENTITY, name: 'Hemma', forecast_mode: 'side_by_side', stack_below: 560 },
+  };
+  for (const [id, cfg] of Object.entries(examples)) $(id).setConfig(cfg);
+
+  // editor + preview
+  let previewConfig = { type: TYPE, entity: ENTITY, name: 'Hemma', forecast_mode: 'side_by_side' };
+  const preview = $('preview');
+  preview.setConfig(previewConfig);
+  const editor = document.createElement('skycast-card-editor');
+  $('editorPanel').appendChild(editor);
+  editor.setConfig(previewConfig);
+
+  const yamlOf = (obj, ind = '') => Object.entries(obj).map(([k, v]) => {
+    if (Array.isArray(v)) return `${ind}${k}:\n${v.map((x) => `${ind}  - ${x}`).join('\n')}`;
+    if (v && typeof v === 'object') return `${ind}${k}:\n${yamlOf(v, ind + '  ')}`;
+    return `${ind}${k}: ${v}`;
+  }).join('\n');
+  const showYaml = () => { $('yaml').textContent = yamlOf(previewConfig); };
+  showYaml();
+  editor.addEventListener('config-changed', (ev) => {
+    previewConfig = ev.detail.config;
+    try { preview.setConfig(previewConfig); } catch (e) { console.warn(e); }
+    editor.setConfig(previewConfig);
+    showYaml();
+  });
+
+  let lastKey = '';
+  function update(regen) {
+    const st = readState();
+    $('elevV').textContent = `${st.elev}°`;
+    $('aziV').textContent = `${st.azi}°`;
+    $('tempV').textContent = `${st.temp.toFixed(1)}°`;
+    $('windV').textContent = `${st.wind} m/s`;
+    const key = [st.cond, st.temp, st.wind, st.scen, seed].join('|');
+    if (regen || key !== lastKey) { lastKey = key; forecasts = SkycastMock.genForecasts(st, seed); }
+    const hass = SkycastMock.makeHass(st, () => forecasts);
+    for (const id of ['preview', ...Object.keys(examples)]) $(id).hass = hass;
+    editor.hass = hass;
+    SkycastMock.notify();
+  }
+
+  document.querySelectorAll('.controls select, .controls input').forEach((el) => el.addEventListener('input', () => update(false)));
+  $('reseed').addEventListener('click', () => { seed++; update(true); });
+  window.__demo = { update, readState, editor, preview, get config() { return previewConfig; } };
+  update(true);
+})();
+</script>
+</body>
+</html>

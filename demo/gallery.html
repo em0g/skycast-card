@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skycast Card – screenshots</title>
+<style>
+  body { margin: 0; background: #10141b; font-family: Roboto, "Segoe UI", system-ui, sans-serif; }
+  .wrap { padding: 24px; display: inline-grid; gap: 20px; }
+  .w1040 { width: 1040px; }
+  .sky { display: grid; grid-template-columns: repeat(3, 340px); gap: 18px; }
+</style>
+</head>
+<body>
+<div class="wrap" id="wrap"></div>
+<script src="mock-hass.js"></script>
+<script src="../dist/skycast-card.js"></script>
+<script>
+(() => {
+  // Pages used for the README screenshots: ?shot=hero | side | sky
+  const shot = new URLSearchParams(location.search).get('shot') || 'hero';
+  const wrap = document.getElementById('wrap');
+  const card = (parent, cfg, st, seed = 7) => {
+    const el = document.createElement('skycast-card');
+    parent.appendChild(el);
+    el.setConfig({ type: 'custom:skycast-card', entity: SkycastMock.ENTITY, ...cfg });
+    const fc = SkycastMock.genForecasts(st, seed);
+    el.hass = SkycastMock.makeHass({ lang: 'en', ...st }, () => fc, cfg.name || 'Home');
+    return el;
+  };
+
+  if (shot === 'hero') {
+    const box = document.createElement('div');
+    box.className = 'w1040';
+    wrap.appendChild(box);
+    card(box, { name: 'Home', forecast_mode: 'side_by_side', wind_unit: 'm/s', metrics: ['humidity', 'wind', 'pressure', 'sun'] },
+      { cond: 'partlycloudy', elev: 12, azi: 205, temp: 8.4, wind: 4, scen: 'later' }, 7);
+  } else if (shot === 'side') {
+    const box = document.createElement('div');
+    box.className = 'w1040';
+    wrap.appendChild(box);
+    card(box, { show_current: false, forecast_mode: 'side_by_side', wind_unit: 'm/s' },
+      { cond: 'rainy', elev: -3, azi: 240, temp: 4.2, wind: 6, scen: 'auto' }, 11);
+  } else {
+    const grid = document.createElement('div');
+    grid.className = 'sky';
+    wrap.appendChild(grid);
+    const base = { show_chart: false, show_nowcast: false, metrics: ['humidity', 'wind'], metrics_columns: 1, wind_unit: 'm/s' };
+    card(grid, { ...base, name: 'Sunny' }, { cond: 'sunny', elev: 32, azi: 175, temp: 22.4, wind: 2, scen: 'dry' }, 3);
+    card(grid, { ...base, name: 'Clear night' }, { cond: 'clear-night', elev: -25, azi: 300, temp: 3.1, wind: 1, scen: 'dry' }, 4);
+    card(grid, { ...base, name: 'Rain at dusk' }, { cond: 'rainy', elev: -2, azi: 240, temp: 7.6, wind: 5, scen: 'now' }, 5);
+    card(grid, { ...base, name: 'Thunderstorm' }, { cond: 'lightning-rainy', elev: 20, azi: 200, temp: 18.2, wind: 9, scen: 'now' }, 6);
+    card(grid, { ...base, name: 'Snow' }, { cond: 'snowy', elev: 6, azi: 190, temp: -3.4, wind: 3, scen: 'now' }, 8);
+    card(grid, { ...base, name: 'Fog' }, { cond: 'fog', elev: 2, azi: 130, temp: 1.2, wind: 0.5, scen: 'dry' }, 9);
+  }
+})();
+</script>
+</body>
+</html>
