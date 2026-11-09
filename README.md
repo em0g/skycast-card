@@ -1,6 +1,13 @@
 # Skycast Card
 
+[![Marketplace: custom repository](https://img.shields.io/badge/Marketplace-custom%20repository-41BDF5.svg)](#installation)
+[![Release](https://img.shields.io/github/v/release/em0g/skycast-card)](https://github.com/em0g/skycast-card/releases/latest)
+[![Validate](https://github.com/em0g/skycast-card/actions/workflows/validate.yml/badge.svg)](https://github.com/em0g/skycast-card/actions/workflows/validate.yml)
+[![License: MIT](https://img.shields.io/github/license/em0g/skycast-card)](LICENSE)
+
 A weather card for Home Assistant with a **living sky** behind an **hourly and daily forecast chart** – and everything is set up in the visual editor.
+
+[![Open Marketplace repository on My Home Assistant](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=em0g&repository=skycast-card&category=plugin)
 
 ![Skycast Card](docs/hero.png)
 
@@ -17,20 +24,94 @@ A weather card for Home Assistant with a **living sky** behind an **hourly and d
 
 ![Different skies](docs/skies.png)
 
+## Contents
+
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Updating and removing](#updating-and-removing)
+- [Getting started](#getting-started)
+- [Configuration](#configuration)
+- [Wall tablets](#wall-tablets)
+- [Troubleshooting](#troubleshooting)
+- [Support and feedback](#support-and-feedback)
+
+## Requirements
+
+- Home Assistant **2024.10** or newer.
+- A **weather entity** that provides an hourly and/or daily forecast, for example from Met.no, SMHI or OpenWeatherMap.
+  The card shows the forecast types your entity supports.
+- Optional: the `sun.sun` entity (on by default in Home Assistant) for the light of the sky and the sun's position.
+
 ## Installation
 
-### HACS
-1. HACS → ⋮ → **Custom repositories** → add `https://github.com/em0g/skycast-card`, type **Dashboard**.
-2. Install **Skycast Card** and reload the browser. HACS registers the resource
-   `/hacsfiles/skycast-card/skycast-card.js` for you.
+### Home Assistant 2026.11 or newer – Marketplace (recommended)
+
+Since 2026.11, the community store is built into Home Assistant as the **Marketplace** (it replaced HACS).
+
+**One click:** select the **Open Marketplace repository** button above and follow the steps in Home Assistant.
+
+**Or by hand:**
+
+1. Go to **Settings → Marketplace**. The first time, read the warning and accept it.
+2. Select **Add from link** in the upper-right corner.
+3. Under **GitHub link**, enter `em0g/skycast-card` and select **Add**. If you are asked for a type, choose **Dashboard**.
+4. Open **Skycast Card** and select **Install**, then **Install** again in the dialog.
+5. **Reload the browser** (on a wall tablet: reload the page in the kiosk app).
+
+The Marketplace adds the dashboard resource `/local/community/skycast-card/skycast-card.js` for you.
+
+> [!NOTE]
+> Skycast Card is not in the Marketplace catalog yet, so it doesn't show up when you search until you have added it with **Add from link**.
+> Once it is in the catalog, you can search for **Skycast** and skip steps 2–3.
+
+### Home Assistant 2026.10 or older – HACS
+
+1. Open **HACS** → **⋮** (upper-right corner) → **Custom repositories**.
+2. Add `https://github.com/em0g/skycast-card` with type **Dashboard**.
+3. Search for **Skycast Card**, select **Download**, then reload the browser.
+
+HACS adds the resource `/hacsfiles/skycast-card/skycast-card.js` for you.
+When you upgrade Home Assistant to 2026.11, HACS moves to the Marketplace automatically: the card stays installed and keeps getting updates.
 
 ### Manual
-Copy `dist/skycast-card.js` to `/config/www/skycast-card/` and add the resource
-`/local/skycast-card/skycast-card.js` (JavaScript module) under **Settings → Dashboards → ⋮ → Resources**.
 
-## Usage
+1. Download `skycast-card.js` from the [latest release](https://github.com/em0g/skycast-card/releases/latest).
+2. Copy it to `/config/www/skycast-card/skycast-card.js`.
+3. Go to **Settings → Dashboards → ⋮ → Resources → Add resource**, enter `/local/skycast-card/skycast-card.js` and choose **JavaScript module**.
+   (If you don't see **Resources**, turn on *Advanced mode* in your user profile.)
+4. Reload the browser.
 
-Edit a dashboard → **Add card** → **Skycast Card**. Everything can be changed in the editor, grouped in sections:
+With a manual install you don't get update notifications; repeat steps 1–2 for each new version and add `?v=1.0.2` (the version) to the end of the resource URL so browsers fetch the new file.
+
+### Dashboards in YAML mode
+
+If you manage resources in YAML, the Marketplace and HACS can't add the resource for you. Add it yourself:
+
+```yaml
+lovelace:
+  resources:
+    - url: /local/community/skycast-card/skycast-card.js # HACS (2026.10 or older): /hacsfiles/skycast-card/skycast-card.js
+      type: module
+```
+
+## Updating and removing
+
+- **Updates** show up under **Settings → Updates**, next to Home Assistant's own updates. Install them there and reload the browser.
+  On a wall tablet, reload the page in the kiosk app (or clear its cache) so the new version loads.
+- See what changed in the [changelog](CHANGELOG.md) or on the [releases page](https://github.com/em0g/skycast-card/releases).
+- **Remove:** first remove the card from your dashboards. Then, in **Settings → Marketplace**, open **Skycast Card** → **⋮** → **Uninstall**.
+  The Marketplace removes the file and the dashboard resource.
+
+## Getting started
+
+1. Edit a dashboard → **Add card** → search for **Skycast**.
+2. The card picks your first weather entity. Choose another one under **Weather data** if you have several.
+3. Choose a layout under **Forecast – what and how**: tabs, hourly only, daily only, side by side or stacked.
+4. In the sections view, resize the card on the **Layout** tab. The card fills the height you give it.
+
+Everything else can be changed in the editor, grouped in sections. At the bottom of the editor you find links to this guide and to bug reports, and the version you are running.
+
+## Configuration
 
 | Section | What you can change |
 |---|---|
@@ -51,6 +132,8 @@ Edit a dashboard → **Add card** → **Skycast Card**. Everything can be change
 
 ### YAML examples
 
+The editor writes the YAML for you. Switch to the code editor in the card dialog to see it, or to paste one of these.
+
 Hourly and daily side by side, without current weather:
 
 ```yaml
@@ -70,6 +153,17 @@ forecast_mode: stacked
 wind_unit: m/s
 metrics: [wind, humidity, indoor_temperature, sun]
 indoor_temperature_entity: sensor.indoor_temperature
+```
+
+Wall tablet: compact header, side by side, lighter animation:
+
+```yaml
+type: custom:skycast-card
+entity: weather.home
+header_style: compact
+show_name: false
+forecast_mode: side_by_side
+max_fps: 20
 ```
 
 Current weather only:
@@ -145,6 +239,54 @@ metrics_columns: 3
 - The animation pauses when the card is off screen or the screen is off.
 - If the tablet gets warm or slow, lower *Max frames per second* to 20 or turn off *Animated sky*.
 - Honours the operating system's "reduce motion" setting.
+- Short of height? Use the *Compact* style and turn off the name under **Current weather**, or make the card shorter on the *Layout* tab – it hides rows by itself.
+
+## Troubleshooting
+
+<details>
+<summary><b>"Custom element doesn't exist: skycast-card"</b></summary>
+
+The browser hasn't loaded the card file.
+
+1. Reload the browser. On a wall tablet, clear the kiosk app's cache.
+2. Check that the resource exists under **Settings → Dashboards → ⋮ → Resources**:
+   `/local/community/skycast-card/skycast-card.js` (Marketplace), `/hacsfiles/skycast-card/skycast-card.js` (HACS) or `/local/skycast-card/skycast-card.js` (manual).
+3. If you manage resources in YAML, add the resource yourself (see [Dashboards in YAML mode](#dashboards-in-yaml-mode)).
+</details>
+
+<details>
+<summary><b>The chart is empty or shows only one forecast type</b></summary>
+
+The card shows the forecasts your weather entity provides. Some weather services only have a daily forecast.
+Check in **Developer tools → Actions**: run `weather.get_forecasts` with your entity and type `hourly` or `daily`.
+If a type returns nothing, choose another layout or another weather integration.
+</details>
+
+<details>
+<summary><b>I still see the old version after an update</b></summary>
+
+Browsers keep the old file in their cache. Reload the page; on a tablet, clear the kiosk app's cache or restart the app.
+The version you run is shown at the bottom of the card editor and in the browser console (`SKYCAST-CARD v…`).
+</details>
+
+<details>
+<summary><b>Times are in 12-hour (or 24-hour) format</b></summary>
+
+The card follows the time format in your Home Assistant user profile (**Profile → Time format**).
+</details>
+
+<details>
+<summary><b>The card is cut off at the bottom</b></summary>
+
+In the sections view, the card fills the height set on the *Layout* tab. Make it taller there, or shorter if it overlaps other cards.
+The card hides the probability, wind and icon rows when it runs out of room.
+</details>
+
+## Support and feedback
+
+- **Bugs and ideas:** [open an issue](https://github.com/em0g/skycast-card/issues/new/choose). Include the card version, your Home Assistant version, the weather integration and your card YAML.
+- **Changes in each version:** [CHANGELOG.md](CHANGELOG.md).
+- Skycast Card is a community project. It is not made, reviewed or supported by the Home Assistant project.
 
 ## Demo without Home Assistant
 
@@ -155,6 +297,8 @@ Start a web server in the repository folder and open `http://localhost:8765/demo
 python -m http.server 8765
 ```
 
+The card is a single file without a build step: edit `dist/skycast-card.js` and reload the demo.
+
 ## License
 
-MIT
+[MIT](LICENSE)

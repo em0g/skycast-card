@@ -3,12 +3,15 @@
  * Animated sky (clouds, rain, snow, fog, lightning, stars, sun, moon) with an
  * hourly / daily forecast chart and precipitation bars on top.
  * Everything can be configured from the visual editor.
- * No dependencies: copy this single file to /config/www/ and add it as a resource.
+ * No dependencies. Install from the Home Assistant Marketplace (or HACS), or copy
+ * this single file to /config/www/ and add it as a resource.
+ * Documentation: https://github.com/em0g/skycast-card
  */
 (() => {
-  const VERSION = '1.0.1';
+  const VERSION = '1.0.2';
   const TAG = 'skycast-card';
   const EDITOR_TAG = 'skycast-card-editor';
+  const REPO = 'https://github.com/em0g/skycast-card';
 
   // ---------------------------------------------------------------- helpers
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
@@ -2220,6 +2223,7 @@ svg.c text { fill: var(--lc-text, #fff); font-family: inherit; }
       },
       tip: 'Allt går att ändra här. Tips: i sektionsvyn kan du även ändra kortets storlek under fliken <b>Layout</b> – kortet fyller då ut höjden automatiskt.',
       loading: 'Laddar redigeraren…',
+      links: { docs: 'Dokumentation', issue: 'Rapportera fel', changes: 'Nyheter' },
       opt: {
         locale: [['auto', 'Samma som Home Assistant'], ['sv', 'Svenska'], ['en', 'English']],
         mode: [['tabs', 'Flikar – Timmar / Dagar'], ['hourly', 'Bara timmar'], ['daily', 'Bara dagar'],
@@ -2290,6 +2294,7 @@ svg.c text { fill: var(--lc-text, #fff); font-family: inherit; }
       },
       tip: 'Everything can be changed here. Tip: in the sections view you can also resize the card on the <b>Layout</b> tab – the card then fills the height.',
       loading: 'Loading editor…',
+      links: { docs: 'Documentation', issue: 'Report a bug', changes: "What's new" },
       opt: {
         locale: [['auto', 'Same as Home Assistant'], ['sv', 'Svenska'], ['en', 'English']],
         mode: [['tabs', 'Tabs – Hourly / Daily'], ['hourly', 'Hourly only'], ['daily', 'Daily only'],
@@ -2536,6 +2541,11 @@ svg.c text { fill: var(--lc-text, #fff); font-family: inherit; }
         this._formLang = this._langKey();
         this.shadowRoot.innerHTML = `<style>
           .tip { font-size: 13px; line-height: 1.4; color: var(--secondary-text-color); margin: 0 0 12px; }
+          .links { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: center; margin: 16px 0 0;
+            font-size: 13px; color: var(--secondary-text-color); }
+          .links a { color: var(--primary-color); text-decoration: none; }
+          .links a:hover { text-decoration: underline; }
+          .links .ver { margin-left: auto; opacity: .8; }
         </style>
         <p class="tip">${L.tip}</p>`;
         this._form = document.createElement('ha-form');
@@ -2543,6 +2553,12 @@ svg.c text { fill: var(--lc-text, #fff); font-family: inherit; }
         this._form.computeHelper = (s) => ED[this._formLang].helpers[s.name];
         this._form.addEventListener('value-changed', (ev) => this._changed(ev));
         this.shadowRoot.appendChild(this._form);
+        const links = document.createElement('p');
+        links.className = 'links';
+        const a = (href, text) => `<a href="${href}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+        links.innerHTML = a(`${REPO}#readme`, L.links.docs) + a(`${REPO}/issues/new/choose`, L.links.issue)
+          + a(`${REPO}/blob/main/CHANGELOG.md`, L.links.changes) + `<span class="ver">Skycast Card v${VERSION}</span>`;
+        this.shadowRoot.appendChild(links);
       }
       const data = { ...DEFAULTS, ...normalize(this._config), ...this._config };
       // show "auto" choices for things that are unset
@@ -2575,7 +2591,7 @@ svg.c text { fill: var(--lc-text, #fff); font-family: inherit; }
       name: 'Skycast Card',
       description: 'Animated sky with an hourly / daily forecast chart, precipitation bars and a rain summary.',
       preview: true,
-      documentationURL: 'https://github.com/em0g/skycast-card',
+      documentationURL: REPO,
     });
   }
   console.info(`%c SKYCAST-CARD %c v${VERSION} `, 'color:#fff;background:#3d8de0;font-weight:700;border-radius:4px 0 0 4px;padding:2px 4px', 'color:#3d8de0;background:#e8f2ff;border-radius:0 4px 4px 0;padding:2px 4px');

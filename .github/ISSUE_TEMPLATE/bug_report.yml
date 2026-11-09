@@ -1,0 +1,68 @@
+name: Bug report
+description: Something in Skycast Card doesn't work or looks wrong
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Please check the [troubleshooting section](https://github.com/em0g/skycast-card#troubleshooting) first – many problems are solved by reloading the browser.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: input
+    id: card_version
+    attributes:
+      label: Skycast Card version
+      description: Shown at the bottom of the card editor and in the browser console (`SKYCAST-CARD v…`).
+      placeholder: "1.0.2"
+    validations:
+      required: true
+  - type: input
+    id: ha_version
+    attributes:
+      label: Home Assistant version
+      description: Settings → About.
+      placeholder: "2026.11.0"
+    validations:
+      required: true
+  - type: input
+    id: weather
+    attributes:
+      label: Weather integration
+      description: Which integration provides your weather entity?
+      placeholder: Met.no, SMHI, OpenWeatherMap…
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: Installed with
+      options:
+        - Marketplace (Home Assistant 2026.11 or newer)
+        - HACS
+        - Manually
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device and browser
+      description: Where do you see the problem?
+      placeholder: Wall tablet with Fully Kiosk, Chrome on Windows, the Companion app on iPhone…
+  - type: textarea
+    id: config
+    attributes:
+      label: Card configuration
+      description: In the card dialog, switch to the code editor and paste the YAML here.
+      render: yaml
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Screenshots and console errors
+      description: Screenshots help a lot. Errors from the browser console (F12) are also useful.

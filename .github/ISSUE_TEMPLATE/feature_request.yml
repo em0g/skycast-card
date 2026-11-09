@@ -1,0 +1,21 @@
+name: Feature request
+description: Suggest an idea or an improvement for Skycast Card
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like?
+      description: Describe the feature and what you would use it for.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: How do you solve it today?
+      description: Optional. Workarounds, other cards or settings you have tried.
+  - type: textarea
+    id: extra
+    attributes:
+      label: Screenshots or sketches
+      description: Optional. A picture of your dashboard or a sketch of the idea.
