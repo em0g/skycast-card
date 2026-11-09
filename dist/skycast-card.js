@@ -6,7 +6,7 @@
  * No dependencies: copy this single file to /config/www/ and add it as a resource.
  */
 (() => {
-  const VERSION = '1.0.0';
+  const VERSION = '1.0.1';
   const TAG = 'skycast-card';
   const EDITOR_TAG = 'skycast-card-editor';
 
@@ -1387,13 +1387,38 @@ svg.c text { fill: var(--lc-text, #fff); font-family: inherit; }
     _wdLong(d) { return this._dtf({ weekday: 'long' }).format(d); }
     _dm(d) { return this._dtf({ day: 'numeric', month: 'numeric' }).format(d); }
 
+    // true when times are shown as 12-hour (AM/PM)
+    _is12h() {
+      const hc = this._dtf({ hour: '2-digit', minute: '2-digit' }).resolvedOptions().hourCycle;
+      return hc === 'h11' || hc === 'h12';
+    }
+
+    // "4 AM" in 12-hour format, "04:00" in 24-hour format
+    _hourShort(d) {
+      return this._is12h() ? this._dtf({ hour: 'numeric' }).format(d) : this._time(d);
+    }
+
+    // Hour label that fits a chart column: "14:00" → "14", "02:00 PM" → "2 PM" → "2p"
+    _hourLabel(d, colW, s) {
+      const fits = (txt) => txt.length * 6.6 * s <= colW * 0.94;
+      const full = this._time(d);
+      if (fits(full)) return full;
+      if (this._is12h()) {
+        const short = this._dtf({ hour: 'numeric' }).format(d);
+        if (fits(short)) return short;
+        return `${d.getHours() % 12 || 12}${d.getHours() < 12 ? 'a' : 'p'}`;
+      }
+      return pad2(d.getHours());
+    }
+
     _when(d) {
       const T = this._T;
-      const hh = T.hourOnly ? pad2(d.getHours()) : this._time(d);
+      const hh = T.hourOnly ? pad2(d.getHours()) : this._hourShort(d);
       const dd = dayDiff(new Date(), d);
       if (dd <= 0) return T.at(hh);
       if (dd === 1) return `${T.tomorrow} ${T.at(hh)}`;
-      return `${this._wd(d).toLowerCase()} ${T.at(hh)}`;
+      const wd = T.hourOnly ? this._wd(d).toLowerCase() : this._wd(d);
+      return `${wd} ${T.at(hh)}`;
     }
 
     _condText(c) {
@@ -2002,7 +2027,6 @@ svg.c text { fill: var(--lc-text, #fff); font-family: inherit; }
       const X = (i) => colW * (i + 0.5);
       const anim = this._animIn && c.animate !== false && c.chart_animation !== false;
       const dl = (i, base = 0) => (anim ? ` style="animation-delay:${(base + i * 0.04).toFixed(2)}s"` : '');
-      const narrowCol = colW < 46 * s;
       const H = g.H;
 
       const pc = c.custom_colors ? toRgb(c.precip_color) : null;
@@ -2047,7 +2071,7 @@ svg.c text { fill: var(--lc-text, #fff); font-family: inherit; }
             b += `<text class="tl${isToday ? ' now' : ''}" x="${cx}" y="${f1(13 * s)}" text-anchor="middle">${esc(isToday ? T.today : this._wd(d))}</text>`;
             b += `<text class="td" x="${cx}" y="${f1(25 * s)}" text-anchor="middle">${esc(this._dm(d))}</text>`;
           } else {
-            const lbl = i === 0 ? T.now : narrowCol ? pad2(d.getHours()) : this._time(d);
+            const lbl = i === 0 ? T.now : this._hourLabel(d, colW, s);
             b += `<text class="tl${i === 0 ? ' now' : ''}" x="${cx}" y="${f1(23 * s)}" text-anchor="middle">${esc(lbl)}</text>`;
           }
         });
